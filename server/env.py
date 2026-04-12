@@ -1,18 +1,16 @@
 # server/env.py
-import sys, os
+import os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from openenv.core.env_server.interfaces import Environment
+from openenv.core.env_server.types import State
 from models import EmailObservation, EmailAction
 from server.tasks import load_emails, grade_classification, grade_reply, grade_summarize
 
 
-class State:
-    def __init__(self, episode_id, step_count=0):
-        self.episode_id = episode_id
-        self.step_count = step_count
+class EmailEnv(Environment):
+    SUPPORTS_CONCURRENT_SESSIONS: bool = True
 
-
-class EmailEnv:
     def __init__(self):
         self.inbox = []
         self.history = []
@@ -37,6 +35,7 @@ class EmailEnv:
                 inbox=[], current_email="", history=self.history,
                 reward=0.0, done=True,
             )
+
         email = self.inbox.pop(0)
         self._step_count += 1
         action_type = (action.action_type or "classify").lower().strip()
@@ -55,6 +54,7 @@ class EmailEnv:
         self.history.append(f"{action_type}: {content[:60]}")
         next_email = self.inbox[0]["text"] if self.inbox else ""
         done = len(self.inbox) == 0
+
         return EmailObservation(
             inbox=[e["text"] for e in self.inbox],
             current_email=next_email,
@@ -66,3 +66,6 @@ class EmailEnv:
     @property
     def state(self) -> State:
         return State(episode_id=self._episode_id, step_count=self._step_count)
+
+    def close(self):
+        pass
