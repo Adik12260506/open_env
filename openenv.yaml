@@ -4,3 +4,16 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
+
+tasks:
+  - name: email_classification
+    description: Classify emails as spam or important
+    grader: server.graders:grade_email_classification
+
+  - name: spam_detection
+    description: Detect and label spam emails
+    grader: server.graders:grade_spam_detection
+
+  - name: email_summarization
+    description: Summarize email content accurately
+    grader: server.graders:grade_email_summarization

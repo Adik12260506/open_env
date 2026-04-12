@@ -1,4 +1,4 @@
-# server/app.py  — standalone FastAPI, no openenv dependency
+# server/app.py
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -7,19 +7,18 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from models import EmailAction, EmailObservation
 from server.env import EmailEnv
 
-app = FastAPI(title="EmailEnv", version="1.0.0", docs_url="/docs")
+app = FastAPI(title="EmailEnv", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
 
-# One shared env instance per container
 _env = EmailEnv()
 
 
@@ -30,6 +29,8 @@ class _Action(BaseModel):
 class _StepReq(BaseModel):
     action: _Action
 
+
+# ── Core env endpoints ────────────────────────────────────────────────────────
 
 @app.get("/health")
 def health():
@@ -55,19 +56,69 @@ def state():
     return {"episode_id": s.episode_id, "step_count": s.step_count}
 
 
+# ── Tasks endpoint — required by OpenEnv validator ───────────────────────────
+
+TASKS: List[Dict[str, Any]] = [
+    {
+        "name": "email_classification",
+        "description": "Classify emails as spam or important",
+        "grader": "server.graders:grade_email_classification",
+        "enabled": True,
+    },
+    {
+        "name": "spam_detection",
+        "description": "Detect and label spam emails",
+        "grader": "server.graders:grade_spam_detection",
+        "enabled": True,
+    },
+    {
+        "name": "email_summarization",
+        "description": "Summarize email content accurately",
+        "grader": "server.graders:grade_email_summarization",
+        "enabled": True,
+    },
+]
+
+@app.get("/tasks")
+def list_tasks():
+    """OpenEnv validator calls this to discover registered tasks with graders."""
+    return {"tasks": TASKS, "count": len(TASKS)}
+
+
+@app.post("/grade/{task_name}")
+def grade_task(task_name: str, payload: Dict[str, Any]):
+    """
+    OpenEnv validator may call this to grade a specific task.
+    payload: {"prediction": str, "email": {...}}
+    """
+    from server.graders import (
+        grade_email_classification,
+        grade_spam_detection,
+        grade_email_summarization,
+    )
+    prediction = payload.get("prediction", payload.get("content", ""))
+    email      = payload.get("email", {})
+
+    graders = {
+        "email_classification": grade_email_classification,
+        "spam_detection":       grade_spam_detection,
+        "email_summarization":  grade_email_summarization,
+    }
+
+    if task_name not in graders:
+        return {"error": f"unknown task: {task_name}"}, 404
+
+    score = graders[task_name](prediction, email)
+    return {"task": task_name, "score": score, "passed": score >= 0.85}
+
+
 # ── Serve web UI ──────────────────────────────────────────────────────────────
+
 _WEB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 
 @app.get("/web", include_in_schema=False)
 @app.get("/web/", include_in_schema=False)
 def web_index():
-    return FileResponse(os.path.join(_WEB, "index.html"))
-
-@app.get("/web/{filename}", include_in_schema=False)
-def web_file(filename: str):
-    path = os.path.join(_WEB, filename)
-    if os.path.isfile(path):
-        return FileResponse(path)
     return FileResponse(os.path.join(_WEB, "index.html"))
 
 @app.get("/")
