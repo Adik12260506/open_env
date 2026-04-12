@@ -1,100 +1,60 @@
-# def load_emails():
-#     return [
-#         {"text": "Refund request for damaged product", "type": "important"},
-#         {"text": "Meeting reschedule", "type": "important"},
-#         {"text": "You won a lottery!!!", "type": "spam"},
-#         {"text": "Angry complaint about delay", "type": "important"},
-#     ]
-
-
-# def grade_classification(email, prediction):
-#     if email["type"] == prediction:
-#         return 1.0
-#     return 0.0
-
-
-# def grade_reply(email, reply):
-#     text = email["text"].lower()
-#     reply = (reply or "").lower()
-
-#     if "refund" in text and "refund" in reply:
-#         return 1.0
-#     if "complaint" in text and ("sorry" in reply or "apologize" in reply):
-#         return 1.0
-#     return 0.0
-
-
-
-# def load_emails():
-#     return [
-#         {"text": "Refund request for damaged product", "type": "important"},
-#         {"text": "Meeting reschedule", "type": "important"},
-#         {"text": "You won a lottery!!!", "type": "spam"},
-#         {"text": "Angry complaint about delay", "type": "important"},
-#     ]
-
-# def load_emails(task_level="easy"):
-    
-#     if task_level == "easy":
-#         return [
-#             {"text": "Refund request", "type": "important"},
-#             {"text": "Lottery win!!!", "type": "spam"},
-#         ]
-
-#     elif task_level == "medium":
-#         return [
-#             {"text": "Refund for damaged product", "type": "important"},
-#             {"text": "Meeting reschedule", "type": "important"},
-#             {"text": "Spam promotion offer", "type": "spam"},
-#         ]
-
-#     elif task_level == "hard":
-#         return [
-#             {"text": "Angry customer complaining about delay", "type": "important"},
-#             {"text": "Refund request with frustration", "type": "important"},
-#             {"text": "Fake lottery scam message", "type": "spam"},
-#         ]
-
-# def grade_classification(email, prediction):
-#     if email["type"] == prediction:
-#         return 1.0
-#     return 0.0
-
-
-# def grade_reply(email, reply):
-#     text = email["text"].lower()
-#     reply = (reply or "").lower()
-
-#     if "refund" in text and "refund" in reply:
-#         return 1.0
-#     if "complaint" in text and ("sorry" in reply or "apologize" in reply):
-#         return 1.0
-
-#     return 0.0
-
-
-
 # server/tasks.py
+
 def load_emails():
     return [
-        {"text": "Refund request", "type": "important"},
-        {"text": "Lottery win!!!", "type": "spam"},
+        {
+            "text": "I would like a refund for the damaged product I received last week. Order #12345.",
+            "type": "important",
+            "expected_action": "reply",
+            "expected_keywords": ["refund", "apologize", "sorry", "processed", "credited"],
+        },
+        {
+            "text": "Congratulations! You have won a $1,000,000 lottery prize. Click here to claim now!!!",
+            "type": "spam",
+            "expected_action": "classify",
+            "expected_keywords": ["spam"],
+        },
+        {
+            "text": "Can you please summarize the key points from our Q3 project meeting? I missed it.",
+            "type": "important",
+            "expected_action": "summarize",
+            "expected_keywords": ["q3", "meeting", "project", "milestones", "key points", "discussed"],
+        },
+        {
+            "text": "Angry complaint: My order has been delayed by 3 weeks and no one is responding!",
+            "type": "important",
+            "expected_action": "reply",
+            "expected_keywords": ["sorry", "apologize", "delay", "update", "resolve"],
+        },
     ]
 
 
-def grade_classification(email, prediction):
+def grade_classification(email: dict, prediction: str) -> float:
     prediction = str(prediction).lower().strip()
-    if "spam" in prediction and "spam" in email["type"].lower():
-        return 1.0
-    if "important" in prediction and "important" in email["type"].lower():
-        return 1.0
-    return 0.6
+    expected = email.get("type", "").lower()
+    return 1.0 if expected in prediction else 0.0
 
 
-def grade_reply(email, reply):
+def grade_reply(email: dict, reply: str) -> float:
     reply_lower = str(reply or "").lower()
-    if "refund" in email["text"].lower():
-        if any(w in reply_lower for w in ["refund", "apologize", "sorry", "processed", "credited"]):
-            return 1.0
-        return 0.85   # good partial score
-    return 0.7
+    keywords = email.get("expected_keywords", [])
+    if not keywords:
+        return 0.5
+    matched = sum(1 for kw in keywords if kw in reply_lower)
+    if matched >= 2:
+        return 1.0
+    return round(matched / len(keywords), 2)
+
+
+def grade_summarize(email: dict, summary: str) -> float:
+    summary_lower = str(summary or "").lower().strip()
+    if not summary_lower or len(summary_lower) < 10:
+        return 0.0
+    keywords = email.get("expected_keywords", [])
+    if not keywords:
+        return 0.5
+    matched = sum(1 for kw in keywords if kw in summary_lower)
+    score = matched / len(keywords)
+    if len(summary_lower) > 30 and matched >= 1:
+        score = min(1.0, score + 0.2)
+    return round(score, 2)

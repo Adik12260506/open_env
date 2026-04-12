@@ -1,4 +1,3 @@
-# models.py
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -10,5 +9,5 @@ class EmailObservation(BaseModel):
     done: bool = False
 
 class EmailAction(BaseModel):
-    action_type: str = "classify"   # ← Default value (important for UI)
+    action_type: str = "classify"
     content: Optional[str] = None

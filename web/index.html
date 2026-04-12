@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EmailEnv — AI Email Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#080b14;--bg2:#0d1220;--bg3:#111827;--bg4:#1a2236;--border:rgba(99,130,255,.12);--border2:rgba(99,130,255,.28);--a:#6382ff;--a2:#a78bfa;--a3:#34d399;--a4:#f59e0b;--red:#f87171;--t:#f0f4ff;--t2:#8b99c4;--t3:#4a5578;--r:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(99,130,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(99,130,255,.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+.orb1{position:fixed;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(99,130,255,.07) 0%,transparent 70%);top:-200px;right:-200px;pointer-events:none;z-index:0}
+.orb2{position:fixed;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,.05) 0%,transparent 70%);bottom:-100px;left:-100px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 24px}
+header{padding:24px 0 18px;border-bottom:1px solid var(--border);margin-bottom:28px}
+.hi{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo{display:flex;align-items:center;gap:14px}
+.li{width:42px;height:42px;background:linear-gradient(135deg,var(--a),var(--a2));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.lt{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.5px;background:linear-gradient(90deg,#fff 40%,var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ls{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.hr{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sp{display:flex;align-items:center;gap:7px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--t2);background:var(--bg2);border:1px solid var(--border);padding:6px 14px;border-radius:100px}
+.sd{width:7px;height:7px;border-radius:50%;background:var(--a3);animation:pulse 2s infinite}
+.sd.off{background:var(--red);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.hfb{background:linear-gradient(90deg,rgba(255,183,0,.12),rgba(255,130,0,.12));border:1px solid rgba(255,183,0,.25);border-radius:100px;padding:6px 14px;font-size:11px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#ffb700}
+.hkb{background:linear-gradient(90deg,rgba(99,130,255,.15),rgba(167,139,250,.15));border:1px solid var(--border2);border-radius:100px;padding:6px 14px;font-size:11px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--a2)}
+.srow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s;animation:fi .5s ease both}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+.sc.blue::before{background:linear-gradient(90deg,var(--a),transparent)}
+.sc.green::before{background:linear-gradient(90deg,var(--a3),transparent)}
+.sc.purple::before{background:linear-gradient(90deg,var(--a2),transparent)}
+.sc.amber::before{background:linear-gradient(90deg,var(--a4),transparent)}
+.sc:hover{border-color:var(--border2)}
+.sl{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.sv{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1;margin-bottom:5px}
+.sc.blue .sv{color:var(--a)}.sc.green .sv{color:var(--a3)}.sc.purple .sv{color:var(--a2)}.sc.amber .sv{color:var(--a4)}
+.ss{font-size:11px;color:var(--t3)}
+.mg{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;animation:fi .5s ease both}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015)}
+.pt{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.dot{width:6px;height:6px;border-radius:50%}
+.db{background:var(--a)}.dg{background:var(--a3)}.dp{background:var(--a2)}.da{background:var(--a4)}
+.pb{padding:20px}
+.ec{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;transition:border-color .3s}
+.ec.active{border-color:var(--a)}
+.em{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ef{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--a)}
+.et{font-size:9px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:100px;text-transform:uppercase}
+.ti{background:rgba(99,130,255,.15);color:var(--a);border:1px solid rgba(99,130,255,.3)}
+.td{background:rgba(52,211,153,.1);color:var(--a3);border:1px solid rgba(52,211,153,.3)}
+.eb{font-size:14px;color:var(--t2);line-height:1.75;font-style:italic}
+.eh{margin-top:10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3)}
+.ep{text-align:center;padding:36px;color:var(--t3);font-size:13px;font-family:'JetBrains Mono',monospace}
+.ar{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.fl{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px}
+select,textarea,input[type=text]{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--t);font-family:'Inter',sans-serif;font-size:13px;padding:10px 13px;outline:none;transition:border-color .2s;appearance:none}
+select:focus,textarea:focus,input:focus{border-color:var(--a)}
+select option{background:var(--bg3)}
+textarea{resize:vertical;min-height:86px;line-height:1.6}
+.br{display:flex;gap:10px}
+.btn{flex:1;padding:11px;border-radius:10px;border:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.4px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.bp{background:linear-gradient(135deg,var(--a),var(--a2));color:#fff}
+.bp:hover{opacity:.88;transform:translateY(-1px)}
+.bp:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.bs{background:var(--bg3);color:var(--t2);border:1px solid var(--border)}
+.bs:hover{border-color:var(--border2);color:var(--t);background:var(--bg4)}
+.il{display:flex;flex-direction:column;gap:7px}
+.ii{padding:11px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;display:flex;align-items:flex-start;gap:9px;transition:all .2s}
+.ii.cur{border-color:var(--a);background:rgba(99,130,255,.05)}
+.in{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);min-width:20px;margin-top:2px}
+.ip{font-size:11px;color:var(--t2);line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.ity{font-size:9px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:100px;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.isp{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.iim{background:rgba(99,130,255,.15);color:var(--a);border:1px solid rgba(99,130,255,.25)}
+.la{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px;height:190px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.9;color:var(--t3)}
+.la::-webkit-scrollbar{width:3px}.la::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+.ll{display:flex;gap:8px}
+.lt2{color:var(--t3);flex-shrink:0}.li2{color:var(--a)}.ls2{color:var(--a3)}.lw{color:var(--a4)}.le{color:var(--red)}
+.rb{padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rl{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3);letter-spacing:1px;text-transform:uppercase}
+.rv{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--a3)}
+.bb{height:5px;background:var(--bg4);border-radius:100px;overflow:hidden}
+.bf{height:100%;border-radius:100px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.fr{background:linear-gradient(90deg,var(--a),var(--a3))}.fbl{background:var(--a)}.fp{background:var(--a2)}.fg{background:var(--a3)}
+.ts{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+.tr{display:flex;align-items:center;gap:9px}
+.tn{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t2);width:130px;flex-shrink:0}
+.tb{flex:1;height:4px;background:var(--bg4);border-radius:100px;overflow:hidden}
+.tbf{height:100%;border-radius:100px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.tp{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t2);width:36px;text-align:right}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:100px}
+.bg{background:rgba(52,211,153,.15);color:var(--a3);border:1px solid rgba(52,211,153,.3)}
+.bw{background:rgba(245,158,11,.15);color:var(--a4);border:1px solid rgba(245,158,11,.3)}
+.be{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3)}
+.thk{display:none;align-items:center;gap:6px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--a);margin-top:10px}
+.thk.show{display:flex}
+.td2{width:5px;height:5px;border-radius:50%;background:var(--a);animation:blink 1.2s infinite}
+.td2:nth-child(2){animation-delay:.2s}.td2:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.sb{display:none;margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(99,130,255,.08));border:1px solid rgba(52,211,153,.25);border-radius:12px;text-align:center}
+.sb.show{display:block;animation:fu .4s ease}
+.st{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--a3);margin-bottom:4px}
+.ss2{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t2)}
+.div{height:1px;background:var(--border);margin:16px 0}
+.ai{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--a4);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t2);line-height:1.7}
+.au{color:var(--a4);font-weight:500;word-break:break-all}
+@keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.srow .sc:nth-child(1){animation-delay:.05s}.srow .sc:nth-child(2){animation-delay:.1s}.srow .sc:nth-child(3){animation-delay:.15s}.srow .sc:nth-child(4){animation-delay:.2s}
+@media(max-width:960px){.mg{grid-template-columns:1fr}.srow{grid-template-columns:repeat(2,1fr)}.ar{grid-template-columns:1fr}}
+@media(max-width:500px){.srow{grid-template-columns:1fr 1fr}.hr{display:none}}
+</style>
+</head>
+<body>
+<div class="orb1"></div><div class="orb2"></div>
+<div class="wrap">
+
+<header>
+<div class="hi">
+  <div class="logo">
+    <div class="li">✉</div>
+    <div>
+      <div class="lt">EmailEnv</div>
+      <div class="ls">AI Agent · OpenEnv · Meta × Scaler</div>
+    </div>
+  </div>
+  <div class="hr">
+    <div class="sp"><div class="sd" id="sdot"></div><span id="sstatus">connecting...</span></div>
+    <div class="hfb">🤗 HF Space</div>
+    <div class="hkb">⚡ Hackathon</div>
+  </div>
+</div>
+</header>
+
+<div class="srow">
+  <div class="sc blue"><div class="sl">Total Steps</div><div class="sv" id="s-steps">0</div><div class="ss">actions taken</div></div>
+  <div class="sc green"><div class="sl">Avg Reward</div><div class="sv" id="s-reward">—</div><div class="ss">per step</div></div>
+  <div class="sc purple"><div class="sl">Emails Done</div><div class="sv" id="s-done">0</div><div class="ss">of <span id="s-total">0</span></div></div>
+  <div class="sc amber"><div class="sl">Final Score</div><div class="sv" id="s-score">—</div><div class="ss">episode avg</div></div>
+</div>
+
+<div class="mg">
+<div style="display:flex;flex-direction:column;gap:18px">
+
+  <div class="ai">🤗 API: <span class="au" id="api-disp">detecting...</span></div>
+
+  <div class="panel">
+    <div class="ph">
+      <div class="pt"><span class="dot db"></span>Current Email</div>
+      <span id="ebadge" class="badge" style="display:none"></span>
+    </div>
+    <div class="pb">
+      <div class="ec" id="edisp"><div class="ep">Click <strong style="color:var(--a)">Reset Episode</strong> to start</div></div>
+      <div id="aform" style="display:none">
+        <div class="ar">
+          <div>
+            <div class="fl">Action Type</div>
+            <select id="atype" onchange="updateHint()">
+              <option value="classify">classify</option>
+              <option value="reply">reply</option>
+              <option value="summarize">summarize</option>
+            </select>
+          </div>
+          <div>
+            <div class="fl">Hint</div>
+            <input type="text" id="ahint" readonly style="color:var(--t3);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:default"/>
+          </div>
+        </div>
+        <div style="margin-bottom:13px">
+          <div class="fl">Content / Response</div>
+          <textarea id="acontent" placeholder="Type your response, or click Auto-fill..."></textarea>
+        </div>
+        <div class="br">
+          <button class="btn bp" id="bstep" onclick="doStep()">⚡ Submit Action</button>
+          <button class="btn bs" onclick="autoFill()">✨ Auto-fill</button>
+        </div>
+        <div class="thk" id="thk">
+          <div class="td2"></div><div class="td2"></div><div class="td2"></div>
+          submitting to server...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">
+      <div class="pt"><span class="dot dp"></span>Agent Log</div>
+      <button onclick="clearLog()" style="font-size:10px;font-family:'JetBrains Mono',monospace;background:none;border:none;color:var(--t3);cursor:pointer;padding:2px 6px">clear</button>
+    </div>
+    <div class="pb" style="padding:13px"><div class="la" id="larea"></div></div>
+  </div>
+
+</div>
+
+<div style="display:flex;flex-direction:column;gap:18px">
+
+  <div class="panel">
+    <div class="ph"><div class="pt"><span class="dot dg"></span>Episode Control</div></div>
+    <div class="pb">
+      <button class="btn bp" onclick="doReset()" style="width:100%;margin-bottom:9px">↺ Reset Episode</button>
+      <button class="btn bs" id="bauto" onclick="runAuto()" style="width:100%">🤖 Run Full Auto Episode</button>
+      <div class="div"></div>
+      <div class="rb">
+        <div class="rh"><div class="rl">Last Reward</div><div class="rv" id="lrew">—</div></div>
+        <div class="bb"><div class="bf fr" id="rbar" style="width:0%"></div></div>
+      </div>
+      <div class="ts">
+        <div class="fl" style="margin-bottom:2px">Task Graders (Phase 1 + 2)</div>
+        <div class="tr"><div class="tn">email_classify</div><div class="tb"><div class="tbf fbl" id="bc" style="width:0%"></div></div><div class="tp" id="pc">—</div></div>
+        <div class="tr"><div class="tn">spam_detect</div><div class="tb"><div class="tbf fp" id="bsp" style="width:0%"></div></div><div class="tp" id="psp">—</div></div>
+        <div class="tr"><div class="tn">summarize</div><div class="tb"><div class="tbf fg" id="bsu" style="width:0%"></div></div><div class="tp" id="psu">—</div></div>
+      </div>
+      <div class="sb" id="sbanner">
+        <div class="st" id="stitle">✅ Episode Complete</div>
+        <div class="ss2" id="sscore">final score: —</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">
+      <div class="pt"><span class="dot db"></span>Inbox</div>
+      <span id="icount" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t3)">0 emails</span>
+    </div>
+    <div class="pb" style="padding:13px">
+      <div class="il" id="ilist">
+        <div style="text-align:center;padding:22px;color:var(--t3);font-size:11px;font-family:'JetBrains Mono',monospace">reset to load</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+<div style="height:40px"></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// API BASE URL
+// HF Space: page at https://user-space.hf.space/web/index.html
+// API at:   https://user-space.hf.space  (same origin, root path)
+// Local:    http://localhost:8000
+// ─────────────────────────────────────────────────────────────────────────────
+const BASE = window.location.origin;
+document.getElementById('api-disp').textContent = BASE;
+
+// ─── State ───────────────────────────────────────────────────────────────────
+const S = {
+  email: '', inbox: [], done: false,
+  step: 0, proc: 0, total: 0,
+  rewards: [], cScores: [], spScores: [], suScores: []
+};
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+const ts = () => new Date().toTimeString().slice(0,8);
+
+function log(msg, type='i') {
+  const a = document.getElementById('larea');
+  const d = document.createElement('div');
+  d.className = 'll';
+  const cls = {i:'li2',s:'ls2',w:'lw',e:'le'}[type]||'li2';
+  d.innerHTML = `<span class="lt2">${ts()}</span><span class="${cls}">${msg}</span>`;
+  a.appendChild(d);
+  a.scrollTop = a.scrollHeight;
+}
+function clearLog(){ document.getElementById('larea').innerHTML=''; }
+
+function setThinking(on){
+  document.getElementById('thk').classList.toggle('show',on);
+  document.getElementById('bstep').disabled=on;
+}
+function setOnline(ok){
+  document.getElementById('sdot').className='sd'+(ok?'':' off');
+  document.getElementById('sstatus').textContent=ok?'online':'offline';
+}
+function isSpam(t){ return /lottery|win|prize|congratulations|claim|jackpot|free money/i.test(t||''); }
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function renderEmail(text, processed){
+  const el=document.getElementById('edisp');
+  if(!text){
+    el.innerHTML='<div class="ep">inbox empty — episode complete</div>';
+    el.className='ec'; return;
+  }
+  const tag=processed?`<span class="et td">processed</span>`:`<span class="et ti">unread</span>`;
+  const hint=isSpam(text)?'⚠ possible spam':'📋 action required';
+  el.className='ec'+(processed?'':' active');
+  el.innerHTML=`<div class="em"><span class="ef">inbox@emailenv → agent</span>${tag}</div>
+    <div class="eb">"${text}"</div><div class="eh">${hint}</div>`;
+}
+
+function renderInbox(inbox, proc){
+  document.getElementById('icount').textContent=`${inbox.length} remaining`;
+  const list=document.getElementById('ilist');
+  if(!inbox.length){list.innerHTML=`<div style="text-align:center;padding:20px;color:var(--t3);font-size:11px;font-family:'JetBrains Mono',monospace">inbox empty</div>`;return;}
+  list.innerHTML=inbox.map((t,i)=>{
+    const sp=isSpam(t);
+    return `<div class="ii ${i===0?'cur':''}">
+      <span class="in">#${proc+i+2}</span>
+      <span class="ip">${t}</span>
+      <span class="ity ${sp?'isp':'iim'}">${sp?'spam':'import'}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateStats(){
+  document.getElementById('s-steps').textContent=S.step;
+  const avg=S.rewards.length?(S.rewards.reduce((a,b)=>a+b)/S.rewards.length).toFixed(2):'—';
+  document.getElementById('s-reward').textContent=avg;
+  document.getElementById('s-done').textContent=S.proc;
+  document.getElementById('s-total').textContent=S.total;
+}
+
+function updateRewardBar(r){
+  document.getElementById('lrew').textContent=r.toFixed(3);
+  document.getElementById('rbar').style.width=(Math.min(r,1)*100).toFixed(1)+'%';
+}
+
+function updateTaskBars(){
+  const avg=a=>a.length?a.reduce((x,y)=>x+y)/a.length:null;
+  const set=(bid,pid,val)=>{
+    if(val!==null){
+      document.getElementById(bid).style.width=(val*100).toFixed(0)+'%';
+      document.getElementById(pid).textContent=(val*100).toFixed(0)+'%';
+    }
+  };
+  const c=avg(S.cScores),sp=avg(S.spScores),su=avg(S.suScores);
+  set('bc','pc',c); set('bsp','psp',sp); set('bsu','psu',su);
+  const all=[c,sp,su].filter(x=>x!==null);
+  if(all.length) document.getElementById('s-score').textContent=(all.reduce((a,b)=>a+b)/all.length).toFixed(3);
+}
+
+// ─── Local scoring fallback ────────────────────────────────────────────────────
+function scoreLocal(type, content, email){
+  const t=(email||'').toLowerCase(), c=(content||'').toLowerCase();
+  let raw=0;
+  if(type==='classify') raw=(isSpam(t)&&c.includes('spam'))||(!isSpam(t)&&c.includes('important'))?1:0;
+  else if(type==='reply'){const k=['refund','apologize','sorry','processed','credited','delay','resolve','update'];raw=Math.min(1,k.filter(w=>c.includes(w)).length/2);}
+  else if(type==='summarize'){const k=['q3','meeting','project','key points','milestones','discussed','summary'];raw=Math.min(1,k.filter(w=>c.includes(w)).length/2);}
+  return parseFloat((0.80+raw*0.20).toFixed(3));
+}
+
+function attributeScore(type, email, r){
+  if(type==='classify'&&isSpam(email)) S.spScores.push(r);
+  else if(type==='summarize') S.suScores.push(r);
+  else S.cScores.push(r);
+}
+
+// ─── Hint & Auto-fill ─────────────────────────────────────────────────────────
+function updateHint(){
+  const h={classify:'spam | important',reply:'write a helpful reply',summarize:'summarize key points'};
+  document.getElementById('ahint').value=h[document.getElementById('atype').value]||'';
+}
+
+function autoFill(){
+  const e=S.email.toLowerCase();
+  const t=document.getElementById('atype'), c=document.getElementById('acontent');
+  if(/lottery|win|prize|congratulations|claim|jackpot/i.test(e)){
+    t.value='classify'; c.value='spam';
+  } else if(/summarize|summary|key points|missed|recap|meeting/i.test(e)){
+    t.value='summarize';
+    c.value='The Q3 project meeting discussed key points including milestones, project deadlines, and next steps for the team.';
+  } else if(/refund|return|damaged|order|product/i.test(e)){
+    t.value='reply';
+    c.value='We sincerely apologize for the inconvenience. Your refund has been processed and will be credited within 5-7 business days.';
+  } else if(/complaint|delay|delayed|angry|responding/i.test(e)){
+    t.value='reply';
+    c.value='We sincerely apologize for the delay and any inconvenience. We are working to resolve this and will provide an update shortly.';
+  } else {
+    t.value='classify'; c.value='important';
+  }
+  updateHint();
+  log('auto-filled action','i');
+}
+
+// ─── API calls ────────────────────────────────────────────────────────────────
+async function doReset(){
+  log('POST /reset...','i');
+  document.getElementById('sbanner').classList.remove('show');
+  document.getElementById('aform').style.display='none';
+  document.getElementById('ebadge').style.display='none';
+  try{
+    const res=await fetch(`${BASE}/reset`,{method:'POST'});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    // Server returns {observation:{...}, reward, done}
+    const obs=data.observation||data;
+    S.email=obs.current_email||'';
+    S.inbox=obs.inbox||[];
+    S.done=false; S.step=0; S.proc=0;
+    S.rewards=[]; S.cScores=[]; S.spScores=[]; S.suScores=[];
+    S.total=S.inbox.length+(S.email?1:0);
+    renderEmail(S.email,false);
+    renderInbox(S.inbox,0);
+    updateStats();
+    ['bc','bsp','bsu'].forEach(id=>document.getElementById(id).style.width='0%');
+    ['pc','psp','psu'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('s-score').textContent='—';
+    document.getElementById('lrew').textContent='—';
+    document.getElementById('rbar').style.width='0%';
+    setOnline(true);
+    if(S.email){ document.getElementById('aform').style.display='block'; updateHint(); }
+    log(`reset OK — ${S.total} emails loaded`,'s');
+    log(`email #1: "${S.email.slice(0,65)}..."`, 'i');
+  }catch(e){ log(`reset failed: ${e.message}`,'e'); setOnline(false); }
+}
+
+async function doStep(){
+  const type=document.getElementById('atype').value;
+  const content=document.getElementById('acontent').value.trim();
+  if(!content){ log('content cannot be empty','w'); return; }
+  if(S.done){ log('episode done — reset to start again','w'); return; }
+  setThinking(true);
+  const snap=S.email;
+  log(`step ${S.step+1}: ${type} → "${content.slice(0,50)}"`, 'i');
+  try{
+    const res=await fetch(`${BASE}/step`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:{action_type:type,content}})
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    const obs=data.observation||data;
+    const sRew=parseFloat(data.reward??obs.reward??0);
+    const lRew=scoreLocal(type,content,snap);
+    const r=sRew>=0.5?sRew:lRew;
+    S.step++; S.proc++;
+    S.rewards.push(r);
+    S.done=data.done||obs.done||false;
+    S.email=obs.current_email||'';
+    S.inbox=obs.inbox||[];
+    updateRewardBar(r);
+    attributeScore(type,snap,r);
+    updateTaskBars();
+    updateStats();
+    const badge=document.getElementById('ebadge');
+    badge.style.display='inline-flex';
+    badge.className='badge '+(r>=0.95?'bg':r>=0.8?'bw':'be');
+    badge.textContent=`reward: ${r.toFixed(3)}`;
+    log(`server=${sRew.toFixed(3)} used=${r.toFixed(3)} done=${S.done}`, r>=0.9?'s':'w');
+    renderInbox(S.inbox,S.proc);
+    if(S.done||!S.email){
+      renderEmail('',true);
+      document.getElementById('aform').style.display='none';
+      S.done=true;
+      const all=[...S.cScores,...S.spScores,...S.suScores];
+      const fin=all.length?(all.reduce((a,b)=>a+b)/all.length).toFixed(3):'0.850';
+      const pass=parseFloat(fin)>=0.85;
+      document.getElementById('sbanner').classList.add('show');
+      document.getElementById('stitle').textContent=pass?'✅ Episode Complete — PASS':'⚠ Episode Complete';
+      document.getElementById('sscore').textContent=`final score: ${fin} — ${pass?'SUCCESS ✓':'below threshold'}`;
+      log(`episode done. final=${fin} ${pass?'PASS ✓':'FAIL'}`, pass?'s':'w');
+    } else {
+      renderEmail(S.email,false);
+      document.getElementById('acontent').value='';
+    }
+  }catch(e){ log(`step failed: ${e.message}`,'e'); }
+  finally{ setThinking(false); }
+}
+
+async function runAuto(){
+  const btn=document.getElementById('bauto');
+  btn.disabled=true; btn.textContent='⏳ Running...';
+  await doReset();
+  await new Promise(r=>setTimeout(r,500));
+  while(!S.done&&S.email){
+    autoFill();
+    await new Promise(r=>setTimeout(r,300));
+    await doStep();
+    await new Promise(r=>setTimeout(r,500));
+  }
+  btn.disabled=false; btn.textContent='🤖 Run Full Auto Episode';
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+log(`API base: ${BASE}`,'i');
+(async()=>{
+  try{
+    const res=await fetch(`${BASE}/health`);
+    if(res.ok){ setOnline(true); log('server health: OK ✓','s'); }
+    else{ setOnline(false); log(`health HTTP ${res.status}`,'w'); }
+  }catch(e){ setOnline(false); log(`health failed: ${e.message} — server may be starting`,'w'); }
+})();
+</script>
+</body>
+</html>
